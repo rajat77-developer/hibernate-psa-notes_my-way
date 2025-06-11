@@ -217,7 +217,7 @@ What is Spring IOC?
 Bean life cycle
 #####################################
 
-Bean is Created---->Dependencies Injected (@Autowired)----->Execution(ready to be used in your application)------>Destruction of the bean
+Bean is Created---->Dependencies Injected (@Autowired)----->Execution(Bean is use by the application)------>Destruction of the bean
 
 
 
