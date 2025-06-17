@@ -660,3 +660,188 @@ class DemocrudApplicationTests {
 	}
 }
 
+What are finder methods in hibernate?
+--------------------------------------
+Finder methods in Hibernate (or JPA) are custom methods used to find or fetch records from the database, based on certain conditions.
+
+Update Repository:
+
+package com.democrud.repository;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.repository.CrudRepository;
+
+import com.democrud.entity.Employee;
+
+public interface EmployeeRepository extends CrudRepository<Employee, Long> {
+	
+	
+	Optional<Employee> findByEmailId(String email);
+	Optional<Employee> findByMobile(String mobile);
+	boolean existsByEmailId(String email);
+	boolean existsByMobile(String mobile);
+	long countByEmailId(String email);
+	List<Employee> findByFirstNameContaining(String keyword);
+	List<Employee> findByFirstNameStartingWith(String prefix);
+	List<Employee> findByFirstNameEndingWith(String suffix);
+	
+
+}
+
+Update:
+-------
+package com.democrud;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import com.democrud.entity.Employee;
+import com.democrud.repository.EmployeeRepository;
+
+@SpringBootTest
+class DemocrudApplicationTests {
+	
+	
+	@Autowired
+	private EmployeeRepository employeeRepository;
+
+	@Test
+	void saveRecord() {
+		Employee emp = new Employee();
+		emp.setFirstName("adam");
+		emp.setLastName("a");
+		emp.setEmailId("adam@gmail.com");
+		emp.setMobile("9632629455");
+		employeeRepository.save(emp);
+	}
+
+	@Test
+	void deleteRecord() {
+		employeeRepository.deleteById(3L);
+	}
+	
+	@Test
+	void getRecordById() {
+		Optional<Employee> opEmp = employeeRepository.findById(1L);
+		if(opEmp.isPresent()) {
+			Employee employee = opEmp.get();
+			System.out.println(employee.getId());
+			System.out.println(employee.getFirstName());
+			System.out.println(employee.getLastName());
+			System.out.println(employee.getEmailId());
+		}else {
+			System.out.println("No record Found");
+		}
+	}
+	
+	@Test
+	void getRecords() {
+		Iterable<Employee> itrEmp = employeeRepository.findAll();
+		for (Employee employee: itrEmp) {
+			System.out.println(employee.getId());
+			System.out.println(employee.getFirstName());
+			System.out.println(employee.getLastName());
+			System.out.println(employee.getEmailId());
+		}
+	}
+	
+	
+	@Test
+	void countRecords() {
+		long count = employeeRepository.count();
+		System.out.println(count);
+	}
+	
+	@Test
+	void findByEmail() {
+		Optional<Employee> opEmp = employeeRepository.findByEmailId("adam@gmail.com");
+		if(opEmp.isPresent()) {
+			Employee employee = opEmp.get();
+			System.out.println(employee.getId());
+			System.out.println(employee.getFirstName());
+			System.out.println(employee.getLastName());
+			System.out.println(employee.getEmailId());
+		}else {
+			System.out.println("No record Found");
+		}
+	}
+	@Test
+	void findByMobile() {
+		Optional<Employee> opEmp = employeeRepository.findByMobile("9632629455");
+		if(opEmp.isPresent()) {
+			Employee employee = opEmp.get();
+			System.out.println(employee.getId());
+			System.out.println(employee.getFirstName());
+			System.out.println(employee.getLastName());
+			System.out.println(employee.getEmailId());
+		}else {
+			System.out.println("No record Found");
+		}
+	}
+	
+	@Test
+	void existsByEmail() {
+		boolean result = employeeRepository.existsByEmailId("adam1@gmail.com");
+		if(result) {
+			System.out.println("Record exists");
+		}else {
+			System.out.println("No record Found");
+		}
+	}
+	
+	@Test
+	void existsByMobile() {
+		boolean result = employeeRepository.existsByMobile("9632629455");
+		if(result) {
+			System.out.println("Record exists");
+		}else {
+			System.out.println("No record Found");
+		}
+	}
+	
+	@Test
+	void countByEmail() {
+		long result = employeeRepository.countByEmailId("adam@gmail.com");
+		System.out.println(result);
+	}
+	
+	@Test
+	void containingLetter() {
+		List<Employee> emp = employeeRepository.findByFirstNameContaining("m");
+		for(Employee e:emp) {
+			System.out.println(e.getFirstName());
+		}
+	}
+	
+	@Test
+	void StaringLetter() {
+		List<Employee> emp = employeeRepository.findByFirstNameStartingWith("m");
+		for(Employee e:emp) {
+			System.out.println(e.getFirstName());
+		}
+	}
+	
+	@Test
+	void endingLetter() {
+		List<Employee> emp = employeeRepository.findByFirstNameEndingWith("m");
+		for(Employee e:emp) {
+			System.out.println(e.getFirstName());
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
