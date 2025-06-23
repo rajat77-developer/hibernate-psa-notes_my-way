@@ -1586,3 +1586,22 @@ public void getPostAndItsComments() {
 -> A Hibernate session is kept open for the entire method.
 -> When you access post.getComments(), Hibernate can safely go to the DB and fetch the comments on demand.
 -> This works perfectly with lazy loading.
+
+Note:
+-----------
+
+| Annotation        | Definition                                                                                                               |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `@Entity`         | Declares the class as a JPA entity. It will be mapped to a table in the database.                                        |
+| `@Id`             | Marks the field as the **primary key** of the entity.                                                                    |
+| `@GeneratedValue` | Specifies how the primary key should be generated (e.g., auto-increment).                                                |
+| `@Table`          | Specifies the table name in the database for this entity.                                                                |
+| `@Column`         | Used to define column details like name, length, nullable, and uniqueness.                                               |
+| `@OneToMany`      | Specifies a one-to-many relationship between two entities (e.g., one post has many comments).                            |
+| `@ManyToOne`      | Specifies a many-to-one relationship (e.g., many comments belong to one post).                                           |
+| `@OneToOne`       | Maps a one-to-one relationship between two entities (e.g., one person has one KYC).                                      |
+| `@ManyToMany`     | Specifies a many-to-many relationship (e.g., student ↔ courses).                                                         |
+| `@JoinColumn`     | Defines the foreign key column in the child table that maps to the parent table.                                         |
+| `@Query`          | Allows writing custom JPQL or native SQL queries inside repository methods.                                              |
+| `@Transactional`  | Manages the database transaction for the method or class. Automatically commits on success and rolls back on exceptions. |
+
