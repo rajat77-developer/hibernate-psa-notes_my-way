@@ -1373,5 +1373,216 @@ All of this data will be loaded into memory, even if you don’t use the comment
 -> For example, you just want to see Post and its Comments in a test.
 -> Developing small apps/ POC
 
+#############################################################
+2. Bidirectional Mapping (Post ↔ Comment)
+In Bidirectional, both Post and Comment know about each other.
+##############################################################
 
+package com.blogapp.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import jakarta.persistence.*;
+
+@Entity
+public class Post {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String title;
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
+    private List<Comment> comments = new ArrayList<>();
+
+	public Long getId() {
+		return id;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public List<Comment> getComments() {
+		return comments;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public void setTitle(String title) {
+		this.title = title;
+	}
+
+	public void setComments(List<Comment> comments) {
+		this.comments = comments;
+	}
+    
+    
+}
+Post.java
+---------------------------
+
+package com.blogapp.entity;
+
+import jakarta.persistence.*;
+
+@Entity
+public class Comment {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String content;
+    
+    @ManyToOne
+    @JoinColumn(name = "post_id")
+    private Post post;
+
+	public Post getPost() {
+		return post;
+	}
+
+	public void setPost(Post post) {
+		this.post = post;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public String getContent() {
+		return content;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public void setContent(String content) {
+		this.content = content;
+	}
+    
+    
+    
+}
+comment.java
+-------------------------------
+application.properties file
+
+spring.application.name=blogapp
+
+spring.datasource.url=jdbc:mysql://localhost:3306/myblog
+spring.datasource.username=root
+spring.datasource.password=test
+
+spring.jpa.hibernate.ddl-auto=update
+
+--------------------------------------------------------
+
+package com.blogapp.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.blogapp.entity.Post;
+
+public interface PostRepository extends JpaRepository<Post, Long> {
+
+}
+
+package com.blogapp.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.blogapp.entity.Comment;
+import com.blogapp.entity.Post;
+
+public interface CommentRepository extends JpaRepository<Comment, Long> {
+
+}
+
+repository layer
+---------------------------
+package com.blogapp;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import com.blogapp.entity.Comment;
+import com.blogapp.entity.Post;
+import com.blogapp.repository.CommentRepository;
+import com.blogapp.repository.PostRepository;
+
+@SpringBootTest
+class BlogappApplicationTests {
+	
+	@Autowired
+	private PostRepository postRepository;
+	
+	@Autowired
+	private CommentRepository commentRepository;
+
+	@Test
+	void savePost() {
+		Post post = new Post();
+		post.setTitle("Hello");
+		postRepository.save(post);
+	}
+	
+	@Test
+	void addCommentToExistingPost() {
+	    Long postId = 1L; // Replace with actual saved post ID
+	    Post post = postRepository.findById(postId).orElseThrow();
+
+	    Comment comment = new Comment();
+	    comment.setContent("This is a comment after the post was created");
+        comment.setPost(post);
+        
+        commentRepository.save(comment);
+	}
+
+}
+Unit Test
+--------------------------------------------------
+
+🔹 Now what happens when you do Lazy Fetch:
+Post post = postRepository.findById(1L).orElseThrow();
+
+-> Only the Post record (with ID 1) is loaded.
+-> No Comment records are loaded yet.
+-> we have to load comments explicitly
+-> We can do this using @TRansactional annotaion
+
+What Happens Without @Transactional
+
+-> Post post = postRepository.findById(1L).orElseThrow();
+-> List<Comment> comments = post.getComments(); // Lazy fetch
+-> If fetch = FetchType.LAZY (default for @OneToMany):
+
+-> The Post is fetched immediately.
+-> The comments collection is not fetched yet.
+-> Instead, Hibernate injects a proxy — a placeholder object.
+-> Then, after the method ends, the Hibernate session is closed.
+
+So when you later try:
+-> comments.size(); // or iterate
+-> Hibernate wants to fetch the comments, but it can't — session is closed.
+
+🚨 Result:
+-> LazyInitializationException: could not initialize proxy - no Session
+
+✅ What @Transactional Does
+When you annotate your method like this:
+
+@Transactional
+public void getPostAndItsComments() {
+    Post post = postRepository.findById(1L).orElseThrow();
+    List<Comment> comments = post.getComments(); // Works now!
+}
+
+-> A Hibernate session is kept open for the entire method.
+-> When you access post.getComments(), Hibernate can safely go to the DB and fetch the comments on demand.
+-> This works perfectly with lazy loading.
