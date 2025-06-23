@@ -1349,3 +1349,29 @@ select * from post where id = 1;
 select * from comment where post_id = 1;
 All data is loaded together, as expected.
 
+🚨 What If You Have:
+-> 1000 Posts in your post table
+-> Each Post has 100 Comments
+
+-> So total:
+1000 × 100 = 100,000 Comments
+
+Now consider this line in code:
+List<Post> posts = postRepository.findAll();
+Because of fetch = FetchType.EAGER, this will:
+-> Fetch 1000 Post rows, and also
+-> Fetch 100,000 Comment rows, eagerly joined
+
+All of this data will be loaded into memory, even if you don’t use the comments!
+
+🔹 Use Unidirectional + EAGER in Development:
+--------------------------------------------------
+-> Easy to design
+-> Easy to test
+-> Less boilerplate code
+-> You don't care (yet) about performance or object depth
+-> For example, you just want to see Post and its Comments in a test.
+-> Developing small apps/ POC
+
+
+
