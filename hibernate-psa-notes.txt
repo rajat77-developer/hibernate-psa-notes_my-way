@@ -1544,6 +1544,18 @@ class BlogappApplicationTests {
         commentRepository.save(comment);
 	}
 
+	@Transactional
+	@Test
+	public void getPostAndItsComments() {
+	    Post post = postRepository.findById(4L).orElseThrow();
+	    List<Comment> comments = post.getComments(); // Works because session is open
+	    for (Comment c:comments) {
+	    	System.out.println(c.getId());
+			System.out.println(c.getContent());
+		}
+	}
+	
+
 }
 Unit Test
 --------------------------------------------------
