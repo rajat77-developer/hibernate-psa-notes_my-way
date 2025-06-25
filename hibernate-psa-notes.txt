@@ -1657,6 +1657,14 @@ public class Bus {
     public void setStops(List<Stop> stops) { this.stops = stops; }
 }
 Bus.java
+-----------------------------------------------------
+-> Bus is the owning side of the relationship.
+-> The @JoinTable annotation defines the join table that connects Bus and Stop.
+-> @JoinColumn(name = "bus_id") tells Hibernate:
+-> This is the foreign key column in the join table pointing to the owning side (Bus).
+-> inverseJoinColumns = @JoinColumn(name = "stop_id")
+-> This is the foreign key column in the join table pointing to the inverse side (Stop).
+
 --------------------------------------------------
 
 package com.blogapp.entity;
