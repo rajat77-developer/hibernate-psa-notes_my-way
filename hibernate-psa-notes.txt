@@ -1746,3 +1746,71 @@ repository
     }
 Unit Test
 -------------------------------------------------------------
+
+##################################
+One-to-One Bidirectional Mapping 
+#################################
+
+-> Bidirectional: Both entities know about each other.
+-> Use @OneToOne on both sides.
+-> Use mappedBy on the non-owning side to avoid creating two foreign keys.
+-> Owning side uses @JoinColumn.
+
+@Entity
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "profile_id")  // FK in User table
+    private Profile profile;
+
+    // getters and setters
+}
+User.java
+---------------------------------------------
+
+@Entity
+public class Profile {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String bio;
+
+    @OneToOne(mappedBy = "profile")
+    private User user;
+
+    // getters and setters
+}
+Profile.java
+--------------------------------------------------------------------------
+
+public interface UserRepository extends JpaRepository<User, Long> {}
+public interface ProfileRepository extends JpaRepository<Profile, Long> {}
+
+Repository
+--------------------------------------------------------------------------
+
+Profile profile = new Profile();
+        profile.setBio("Full Stack Developer");
+
+        User user = new User();
+        user.setName("Pankaj");
+        user.setProfile(profile);
+
+        userRepo.save(user); // saves both due to CascadeType.ALL
+
+Unit Test
+---------------------------------------------------------------------
+
+Note: Default Fetch Type
+-----
+@OneToOne(fetch = FetchType.EAGER)
+@ManyToOne(fetch = FetchType.EAGER)
+@OneToMany(fetch = FetchType.LAZY)
+@ManyToMany(fetch = FetchType.LAZY)
+
