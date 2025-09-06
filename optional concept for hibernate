@@ -1,0 +1,154 @@
+Q. what is optional in hibernate?
+
+Answer:
+
+In Hibernate, the optional attribute is used with associations like @OneToOne or @ManyToOne to indicate whether the associated entity can be null or not.
+
+✅ What is optional in Hibernate?
+
+optional = true (default): The association is not required; the foreign key column can be null.
+optional = false: The association is required; the foreign key column must not be null (i.e., it's mandatory).
+
+It mainly applies to JPA annotations, especially @OneToOne and @ManyToOne.
+
+🔹 When is optional used?
+
+It’s used when defining entity relationships, to control the nullability of the foreign key in the database schema.
+
+🧾 Simple Example
+Imagine you have two entities: Person and Passport.
+📘 Scenario:
+Each person might have a passport.
+But the passport must belong to a person.
+
+💡 Entities Example
+@Entity
+public class Person {
+
+    @Id
+    @GeneratedValue
+    private Long id;
+
+    private String name;
+
+    @OneToOne(mappedBy = "person", cascade = CascadeType.ALL)
+    private Passport passport;
+
+    // getters and setters
+}
+
+@Entity
+public class Passport {
+
+    @Id
+    @GeneratedValue
+    private Long id;
+
+    private String number;
+
+    @OneToOne
+    @JoinColumn(name = "person_id", nullable = false) // foreign key column
+    private Person person;
+
+    // getters and setters
+}
+======================================
+Optional Usage
+
+If you set:
+@OneToOne(optional = false)
+@JoinColumn(name = "person_id")
+
+private Person person;
+
+Hibernate will generate a schema where the person_id column in passport cannot be null.
+
+If you try to persist a Passport without a Person, it will fail.
+
+✅ Summary
+Attribute	Meaning
+optional = true	The association is optional (nullable FK)
+optional = false	The association is required (non-null FK)
+
+⚠️ Note: optional = false only applies to the Java-side and Hibernate mapping; you should still use nullable = false in @JoinColumn to enforce it in the DB schema.
+
+
+
+
+Realtime my practical experience
+=================================
+
+
+a.java
+------
+
+package p1;
+public class A{
+
+public static void main(String[] args){
+
+    int x=10;
+     A a1=null;
+     system.out.println(a1.x);
+
+  }
+}
+
+Output:
+error::: java.lang.NullPointerException
+=======================================
+=======================================
+=======================================
+
+To avoid it we use OPTIONAL feature 
+
+package p1;
+public class A{
+
+public static void main(String[] args){
+
+    int x=10;
+     A a1=null;
+    Optional<A> val = Optional.ofNullable(a1);
+     system.out.println(val.isPresent());
+
+  }
+}
+
+optional class has a method :  Optional.ofNullable(null)
+===========================================================
+===========================================================
+===========================================================
+output: false because a1 has no object address present in it.
+=============================================================
+=============================================================
+=============================================================
+package p1;
+public class A{
+
+public static void main(String[] args){
+
+    int x=10;
+     A a1= new A();
+    Optional<A> val = Optional.ofNullable(a1);
+     system.out.println(val.isPresent());
+
+  }
+}
+
+OUTPUT: true
+------------
+because a1 has object right now, not null. so i am getting the value "true".
+
+
+
+
+
+
+
+
+
+
+
+
+
