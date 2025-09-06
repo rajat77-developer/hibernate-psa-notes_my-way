@@ -479,14 +479,6 @@ Q. what is the starting point of spring boot application ?
 
 -> A class, annotated with @SpringBootApplication which has main method , is the starting point from where spring boot project begins
 
-Note:
-
-Optional class:
-----------------
-
--> Optional class was introduced in java version 8
--> It is alternate way to handle null pointer exception
-
 
 Example:
 ---------
@@ -741,8 +733,13 @@ class DemocrudApplicationTests {
      # id is long value so we use here L, we delete data by using id number and @test is a annotation
 	
    }
-	
-	@Test
+/* Note:
+   Optional class:
+   ----------------
+-> Optional class was introduced in java version 8
+-> It is alternate way to handle null pointer exception
+*/	
+@Test
 	void getRecordById() {
 		Optional<Employee> opEmp = employeeRepository.findById(1L);
 		if(opEmp.isPresent()) {
@@ -1969,5 +1966,6 @@ Shared Caching Works Like This:
 -> First DB hit → stores in second-level cache.
 -> If User B logs in and loads user with ID 1:
 -> No DB hit — served from cache!
+
 
 
