@@ -1,0 +1,102 @@
+EmployeeRepository.java
++++++++++++++++++++++++
+
+@Query("select e from Employee e where e.emailId=:x" )
+   Optional <Employee> searchByEmail( @Param("x")String email);
+   
+   @Query("select emp from Employee emp where emp.mobile=:mobile")
+   Optional <Employee> searchByMobile(@Param("mobile")String mobile);
+   
+   
+   @Query("select e from Employee e where e.emailId=:e and e.mobile=:m")
+   Optional <Employee> searchByEmailAndMobile(@Param("e") String email, @Param("m")String mobile);
+   
+   
+   @Query("select e from Employee e where e.emailId=:x or e.mobile=:m")
+   List <Employee> searchByEmailIdOrMobile(@Param("x") String email, @Param("m")String mobile);
+   
+
+
+   DemoCrudApplicationTests.java
+   +++++++++++++++++++++++++++++
+
+
+   				    //JPQL Query started from here 
+
+package com.demo_crud;
+
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import com.demo_crud.entity.Employee;
+import com.demo_crud.repository.EmployeeRepository;
+
+@SpringBootTest
+class DemoCrudApplicationTests {
+
+	@Autowired
+	private EmployeeRepository  employeeRepository;
+	           
+@Test
+void searchEmployeeByEmail() {
+	 
+	 Optional<Employee> opEmp = employeeRepository.searchByEmail("adam@gmail.com"); 
+	 
+	 if(opEmp.isPresent()) {
+		 
+		 Employee emp= opEmp.get();
+		 System.out.println(emp.getId());
+		 System.out.println(emp.getFirstName());
+		 System.out.println(emp.getLastName());
+		 System.out.println(emp.getEmailId());
+		 System.out.println(emp.getMobile());
+	 }
+		 
+	 }
+@Test
+void searchEmployeeByMobile() {
+Optional<Employee> opEmp = employeeRepository.searchByMobile("9745898554");
+if(opEmp.isPresent()) {
+	 
+	 Employee emp= opEmp.get();
+	 System.out.println(emp.getId());
+	 System.out.println(emp.getFirstName());
+	 System.out.println(emp.getLastName());
+	 System.out.println(emp.getEmailId());
+	 System.out.println(emp.getMobile());
+
+
+     }
+    }
+@Test
+void searchEmployeeByEmailAndMobile() {
+Optional<Employee> opEmp = employeeRepository.searchByEmailAndMobile("honu@gmail.com", "9745898554");
+if(opEmp.isPresent()) {
+	 
+	 Employee emp= opEmp.get();
+	 System.out.println(emp.getId());
+	 System.out.println(emp.getFirstName());
+	 System.out.println(emp.getLastName());
+	 System.out.println(emp.getEmailId());
+	 System.out.println(emp.getMobile());
+
+
+     }
+    }
+
+@Test
+void searchEmployeeByEmailOrMobile() {
+List<Employee> employees = employeeRepository.searchByEmailIdOrMobile("honu@gmail.com", null);
+for(Employee emp:employees) {
+	 System.out.println(emp.getId());
+	 System.out.println(emp.getFirstName());
+	 System.out.println(emp.getLastName());
+	 System.out.println(emp.getEmailId());
+	 System.out.println(emp.getMobile());
+
+
+     }
+    }
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
