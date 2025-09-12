@@ -1,0 +1,285 @@
+###################################################
+✔️ This is a Unidirectional OneToMany mapping:
+###################################################
+
+@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+@JoinColumn(name = "post_id")
+private List<Comment> comments = new ArrayList<>();
+->One entity knows about the other entity but other entity has no information about the parent entity
+-> Post owns the relationship.
+-> Comment does NOT have a reference back to Post (no @ManyToOne).
+-> The foreign key post_id is maintained in the comment table by Hibernate using @JoinColumn.
+#################################
+✅ fetch = FetchType.EAGER
+#################################
+-> "We are doing eager loading here because when Post entity is loaded in memory, its associated entities should be loaded."
+
+-> Exactly! That means:
+-> When you call postRepository.findById(1L), Hibernate joins or loads the comments immediately.
+Example SQL Behind the Scenes (with EAGER)
+---------------------------------------
+When you fetch the post:
+Post post = postRepository.findById(1L).orElseThrow();
+
+Hibernate generates:
+select * from post where id = 1;
+select * from comment where post_id = 1;
+All data is loaded together, as expected.
+
+🚨 What If You Have:
+-> 1000 Posts in your post table
+-> Each Post has 100 Comments
+
+-> So total:
+1000 × 100 = 100,000 Comments
+
+Now consider this line in code:
+List<Post> posts = postRepository.findAll();
+Because of fetch = FetchType.EAGER, this will:
+-> Fetch 1000 Post rows, and also
+-> Fetch 100,000 Comment rows, eagerly joined
+
+All of this data will be loaded into memory, even if you don’t use the comments!
+🔹 Use Unidirectional + EAGER in Development:
+--------------------------------------------------
+-> Easy to design
+-> Easy to test
+-> Less boilerplate code
+-> You don't care (yet) about performance or object depth
+-> For example, you just want to see Post and its Comments in a test.
+-> Developing small apps/ POC (proof of concept)
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#############################################################
+2. Bidirectional Mapping (Post ↔ Comment)
+In Bidirectional, both Post and Comment know about each other.
+##############################################################
+
+=========================================================================================================
+
+Hotels and review project 
+--------------------------
+
+file-new-spring stater project-
+
+studentservice
+ src/main/java
+   com.studentservice.entity         create entity and repository package under this .
+   com.studentservice.repository
+
+com.studentservice.entity
+Hotel.java
+Review.java
+
+Hotel.java
+=========
+package com.StudentService.entity;
+
+import java.util.List;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name="hotels")
+public class Hotel {
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private long id;
+	private String name;
+	
+	@OneToMany (cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+	
+	// We use EAGER only in development phase, not in production phase.  
+	
+	@JoinColumn(name="hotel_id")         //added foreign key column 
+	private List<Review> reviews;
+	
+	
+	public long getId() {
+		return id;
+	}
+	public void setId(long id) {
+		this.id = id;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public List<Review> getReviews() {
+		return reviews;
+	}
+	public void setReviews(List<Review> reviews) {
+		this.reviews = reviews;
+	}
+	
+
+}
+
+===========
+Review.java
+===========
+package com.StudentService.entity;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name="reviews")
+
+public class Review {
+
+	public long getId() {
+		return id;
+	}
+	public void setId(long id) {
+		this.id = id;
+	}
+	public String getContent() {
+		return content;
+	}
+	public void setContent(String content) {
+		this.content = content;
+	}
+	public int getRating() {
+		return rating;
+	}
+	public void setRating(int rating) {
+		this.rating = rating;
+	}
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private long id;
+	private String content;
+	private int rating;	
+}
+
+
+HotelRepository.java
+====================
+package com.StudentService.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.StudentService.entity.Hotel;
+
+public interface HotelRepository extends JpaRepository<Hotel, Long> {
+
+}
+
+ReviewRepository.java
+=====================
+package com.StudentService.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.StudentService.entity.Review;
+
+public interface ReviewRepository extends JpaRepository<Review, Long> {
+
+}
+
+
+application.properties
+======================
+
+spring.application.name=studentservice
+spring.datasource.url=jdbc:mysql://localhost:3306/mysqldb
+spring.datasource.username=root
+spring.datasource.password=test
+spring.jpa.hibernate.ddl-auto=update
+
+
+StudentserviceApplicationTests.java
+===================================
+package com.StudentService;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.embedded.netty.NettyReactiveWebServerFactory;
+
+import com.StudentService.entity.Hotel;
+import com.StudentService.entity.Review;
+import com.StudentService.repository.HotelRepository;
+
+@SpringBootTest
+class StudentserviceApplicationTests {
+
+	@Autowired
+	private HotelRepository hotelRepository;
+	
+	@Test
+	void addHotel() {
+		
+		Hotel h =new Hotel();
+		h.setName("Hill view ooty");
+		hotelRepository.save(h);
+	}
+
+	@Test
+	void addReview() {
+		
+		Long hotelId= 1L;
+		Hotel hotel = hotelRepository.findById(hotelId).orElseThrow();
+		
+		Review review = new Review();
+		review.setContent("Good");
+		review.setRating(5);
+		
+		hotel.getReviews().add(review);
+		
+		hotelRepository.save(hotel);
+	}
+	
+	/*
+	
+	To delete a hotel by id , if i delete the hotel, automatically comments are deleted from the hotel. Because of cascade.
+	
+	@Test
+	void deleteHotel() {
+		
+		hotelRepository.deleteById(1L);
+		
+		
+	}
+	
+	*/	
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
