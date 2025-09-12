@@ -1,0 +1,224 @@
+What is Cascade ?
+Answer: 
+Cascade in Hibernate means when you perform an action on a parent entity, the same action is automatically applied to its child entities.
+Example: If you delete a Department, all its Employees get deleted automatically (if cascade is enabled).
+
+What is Fetch in hibernate?
+
+Fetch in Hibernate defines when and how associated entities are loaded from the database — either immediately (EAGER) or on demand (LAZY).
+
+
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+src/main/java
+    com.demoapp.entity
+        Post.java
+        Comment.java
+=====================================================================================================================
+Post.java
+=========
+package com.demoapp.entity;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Getter
+@Setter
+
+public class Post {
+
+	@Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String title;
+    @OneToMany( cascade= CascadeType.ALL, fetch=FetchType.EAGER)
+    @JoinColumn(name = "post_id")
+    private List<Comment> comemnts = new ArrayList<>();
+	public Long getId() {
+		return id;
+	}
+	public void setId(Long id) {
+		this.id = id;
+	}
+	public String getTitle() {
+		return title;
+	}
+	public void setTitle(String title) {
+		this.title = title;
+	}
+	public List<Comment> getComemnts() {
+		return comemnts;
+	}
+	public void setComemnts(List<Comment> comemnts) {
+		this.comemnts = comemnts;
+	}
+	
+}
+==========================================================================================================
+Comment.java
+============
+package com.demoapp.entity;
+
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+@Entity
+@Getter
+@Setter
+
+
+public class Comment {
+@Id
+@GeneratedValue(strategy = GenerationType.IDENTITY)
+private Long id;
+
+private String content;
+
+public Long getId() {
+	return id;
+}
+
+public void setId(Long id) {
+	this.id = id;
+}
+
+public String getContent() {
+	return content;
+}
+
+public void setContent(String content) {
+	this.content = content;
+}
+
+/*
+ 
+//many to one mapping 
+
+@ManyToOne
+@JoinColumn(name = "post_id") //this will generate a foreign key so here "post_id" will become the foreign key inside the "comment" entity.
+private Post post;
+
+
+*/
+
+	}
+===============================================================================================================================
+src/main/java
+  com.demoapp.repository
+
+PostRepository.java
+====================
+package com.demoapp.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.demoapp.entity.Post;
+
+public interface PostRepository extends JpaRepository<Post, Long> {
+
+}
+
+
+CommentRepository.java
+=======================
+package com.demoapp.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.demoapp.entity.Comment;
+
+public interface CommentRepository extends JpaRepository<Comment, Long> {
+
+}
+
+================================================================================
+
+src/test/java
+ DemoAppApplicationTests.java
+==============================
+
+package com.demoapp;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import com.demoapp.entity.Comment;
+import com.demoapp.entity.Post;
+import com.demoapp.repository.CommentRepository;
+import com.demoapp.repository.PostRepository;
+
+@SpringBootTest
+class DemoappApplicationTests {
+
+	
+	@Autowired
+	private PostRepository postRepository;
+	
+	@Autowired
+	private CommentRepository commentRepository;
+	
+	@Test
+	void savePost() {
+		
+		Post post =new Post();
+		post.setTitle("Hello");
+		postRepository.save(post);
+	}
+
+	@Test
+	void addCommentToExistingPost() {
+		
+		Long postId = 1L; // Replace with actual saved post ID
+	    Post post = postRepository.findById(postId).orElseThrow();
+	    /*
+	    Long postId = 1L; meaning postId 1 long value if it is found then store it into (post)which is define into the second line
+	    Post post = postRepository.findById(postId).orElseThrow();
+	    
+	    'now the post value is "Hello" which is stored in db 
+	    
+	    now we will add comment to it, to add this we will create a comment object for the same.
+		*/
+	    
+	    Comment comment = new Comment();
+	    comment.setContent("This is a comment after the post was created");
+
+		//foreign key is set for comment with post id 1.
+		post.getComemnts().add(comment);
+		
+		//how to save this comment.
+		postRepository.save(post);	
+		
+	}
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
