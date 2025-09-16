@@ -1,0 +1,445 @@
+Here, we will work on BUS and Stops for manytomany mapping.
+
+
+For ManyToMany mapping one @JoinTable is required.
+
+Bus.java
+-----------------------------------------------------
+-> Bus is the owning side of the relationship.
+-> The @JoinTable annotation defines the join table that connects Bus and Stop.
+-> @JoinColumn(name = "bus_id") tells Hibernate:
+-> This is the foreign key column in the join table pointing to the owning side (Bus).
+-> inverseJoinColumns = @JoinColumn(name = "stop_id")
+-> This is the foreign key column in the join table pointing to the inverse side (Stop).
+
+For ManyToMany mapping one @JoinTable is required.
+
+
+project
+===========
+
+
+Bus.java
+========
+package com.blog1.entity;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.JoinColumn;
+
+
+@Entity
+public class Bus {
+
+	
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	
+	private Long id;
+	
+	private String busName;
+	
+	@ManyToMany
+	@JoinTable
+	(
+			
+			name = "bus_stop",
+			joinColumns = @JoinColumn(name="bus_id"),
+			inverseJoinColumns = @JoinColumn(name="stop_id")
+			
+			)
+	
+	private List<Stop> stops = new ArrayList<>();
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getBusName() {
+		return busName;
+	}
+
+	public void setBusName(String busName) {
+		this.busName = busName;
+	}
+
+	public List<Stop> getStops() {
+		return stops;
+	}
+
+	public void setStops(List<Stop> stops) {
+		this.stops = stops;
+	}	
+}
+
+Stop.java
+=========
+
+package com.blog1.entity;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
+
+@Entity
+public class Stop {
+
+	 @Id
+	    @GeneratedValue(strategy = GenerationType.IDENTITY)
+	    private Long id;
+
+	    private String stopName;
+	    
+	    @ManyToMany(mappedBy = "stops")
+	    private List<Bus> buses = new ArrayList<>();
+	    
+
+		public Long getId() {
+			return id;
+		}
+
+		public void setId(Long id) {
+			this.id = id;
+		}
+
+		public String getStopName() {
+			return stopName;
+		}
+
+		public void setStopName(String stopName) {
+			this.stopName = stopName;
+		}
+	  	
+}
+
+application.properties
+======================
+spring.application.name=blog1
+
+spring.datasource.url=jdbc:mysql://localhost:3306/bus_stop
+spring.datasource.username=root
+spring.datasource.password=test
+spring.jpa.hibernate.ddl-auto=update
+
+BusRepository.java
+==================
+
+package com.blog1.repository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import com.blog1.entity.Bus;
+public interface BusRepository extends JpaRepository<Bus, Long>{
+
+}
+
+StopRepository.java
+===================
+
+package com.blog1.repository;
+import org.springframework.data.jpa.repository.JpaRepository;
+import com.blog1.entity.Stop;
+public interface StopRepository extends JpaRepository<Stop, Long> {}
+
+Blog1ApplicationTests.java
+==========================
+
+package com.blog1;
+
+import java.util.Arrays;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import com.blog1.entity.Bus;
+import com.blog1.entity.Stop;
+import com.blog1.repository.BusRepository;
+import com.blog1.repository.StopRepository;
+
+@SpringBootTest
+
+
+class Blog1ApplicationTests {
+
+	@Autowired
+    private BusRepository busRepo;
+
+    @Autowired
+    private StopRepository stopRepo;
+    
+    
+    @Test
+    public void createBusWithStops() {
+        Stop s1 = new Stop();
+        s1.setStopName("Majestic");
+
+        Stop s2 = new Stop();
+        s2.setStopName("BTM Layout");
+
+        Stop s3 = new Stop();
+        s3.setStopName("Electronic City");
+
+        stopRepo.saveAll(Arrays.asList(s1, s2, s3));
+
+        Bus b1 = new Bus();
+        b1.setBusName("Bus 101");
+        b1.setStops(Arrays.asList(s1, s2));
+
+        Bus b2 = new Bus();
+        b2.setBusName("Bus 202");
+        b2.setStops(Arrays.asList(s2, s3));
+
+        busRepo.saveAll(Arrays.asList(b1, b2));
+    }
+
+}
+====================================================================================================================================
+
+
+=================================================
+now we will learn One-To-One Biderctional Mapping
+==================================================
+
+##################################
+One-to-One Bidirectional Mapping 
+#################################
+
+-> Bidirectional: Both entities know about each other.
+-> Use @OneToOne on both sides.
+-> Use mappedBy on the non-owning side to avoid creating two foreign keys.
+   here bus is ownig side , stop is non owning side
+-> Owning side uses @JoinColumn.
+
+
+Here we will do one project with one user has one profile.
+
+==========
+OneToOne :
+==========
+
+
+User.java
+==========
+package com.blog1.entity;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+
+@Entity
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+    
+    
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "profile_id")
+    private Profile profile;
+
+
+	public Long getId() {
+		return id;
+	}
+
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+
+	public String getName() {
+		return name;
+	}
+
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+
+	public Profile getProfile() {
+		return profile;
+	}
+
+
+	public void setProfile(Profile profile) {
+		this.profile = profile;
+	}
+     
+}
+
+
+
+Profile.java
+============
+package com.blog1.entity;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
+
+@Entity
+public class Profile {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String bio;
+    
+    @OneToOne(mappedBy = "profile")
+    private User user;
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public String getBio() {
+		return bio;
+	}
+
+	public void setBio(String bio) {
+		this.bio = bio;
+	}
+
+	public User getUser() {
+		return user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}   
+}
+
+
+
+UserRepository.java
+====================
+package com.blog1.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.blog1.entity.User;
+
+public interface UserRepository extends JpaRepository<User, Long> {}
+
+
+
+ProfileRepository.java
+======================
+
+package com.blog1.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.blog1.entity.Profile;
+
+public interface ProfileRepository extends JpaRepository<Profile, Long> {}
+
+
+
+Blog1ApplicationTests.java
+==========================
+package com.blog1;
+
+import java.util.Arrays;
+import com.blog1.entity.User;  // ✅ use your entity, not Spring's User class
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.boot.autoconfigure.security.SecurityProperties.User;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import com.blog1.entity.Bus;
+import com.blog1.entity.Profile;
+import com.blog1.entity.Stop;
+import com.blog1.repository.BusRepository;
+import com.blog1.repository.StopRepository;
+import com.blog1.repository.UserRepository;
+
+@SpringBootTest
+
+
+class Blog1ApplicationTests {
+
+	@Autowired
+    private BusRepository busRepo;
+
+    @Autowired
+    private StopRepository stopRepo;
+    
+    @Autowired
+    private UserRepository userRepo;
+    
+    
+    @Test
+    public void createBusWithStops() {
+        Stop s1 = new Stop();
+        s1.setStopName("Majestic");
+
+        Stop s2 = new Stop();
+        s2.setStopName("BTM Layout");
+
+        Stop s3 = new Stop();
+        s3.setStopName("Electronic City");
+
+        stopRepo.saveAll(Arrays.asList(s1, s2, s3));
+
+        Bus b1 = new Bus();
+        b1.setBusName("Bus 101");
+        b1.setStops(Arrays.asList(s1, s2));
+
+        Bus b2 = new Bus();
+        b2.setBusName("Bus 202");
+        b2.setStops(Arrays.asList(s2, s3));
+
+        busRepo.saveAll(Arrays.asList(b1, b2));
+    }
+
+    
+    @Test
+    public void CreateUser() {
+    	
+    	Profile profile = new Profile();
+    	profile.setBio("Full Stack Developer");
+    	
+    	User user = new User();
+    	user.setName("Pankaj");
+    	user.setProfile(profile);
+    	
+    	
+    	userRepo.save(user); // saves both due to CasCadeType.ALL 
+    
+    
+    
+    }
+    
+    
+}
+
