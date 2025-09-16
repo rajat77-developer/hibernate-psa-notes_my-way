@@ -1,0 +1,72 @@
+#################
+Hibernate Cache 
+#################
+
+Hibernate Cache is a mechanism in Hibernate ORM to reduce database access by storing frequently used data in memory.
+Note: Hibernate Cache = In-Memory (Temporary) Storage in RAM
+
+It helps improve performance by:
+a. Avoiding repetitive SQL queries
+b. Reducing latency
+c. Minimizing DB load
+
+Types of Hibernate Caching
+1. First-Level Cache (Enabled by default)
+Scope: Per Hibernate Session. In a typical web application, each user request (such as a login) gets its own Hibernate Session
+Behavior: Same object is never queried twice in a single session
+
+Example:
+
+Session session = sessionFactory.openSession();
+User user1 = session.get(User.class, 1L); // hits DB
+User user2 = session.get(User.class, 1L); // served from cache
+This is always enabled and cannot be disabled.
+
+2. Second-Level Cache (Optional)
+Scope: Across multiple Sessions (shared globally)
+Requires configuration
+Stores entities between sessions
+Uses cache providers like:
+Ehcache
+Caffeine
+Infinispan
+Redis
+
+Example:
+---------------------
+Shared Caching Works Like This:
+-> If User A logs in and loads user profile with ID 1:
+-> First DB hit → stores in second-level cache.
+-> If User B logs in and loads user with ID 1:
+-> No DB hit — served from cache!
+
+=================================================
+
+            ################################
+                   What is Spring boot
+            ################################
+
+Spring Boot is an open-source Java-based framework used to create stand-alone applications quickly and easily with minimal configuration.
+
+Spring Boot Stand-Alone Application:
+------------------------------------
+
+-> You just run a main() method like any regular Java program.
+-> It includes an embedded server (e.g., Tomcat) in the application itself.
+-> No need to install or configure any external server separately.
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Example:
+@SpringBootApplication
+public class MyApp {
+    public static void main(String[] args) {
+        SpringApplication.run(MyApp.class, args);  // Starts embedded server
+    }
+}
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+When you run above program
+	a. Starts up the embedded server.
+	b. Deploys your app on it.
+	c. Listens to HTTP requests (like a web server).
+ 
+Note: Since Spring boot is stand alone application, we package the application as jar file
