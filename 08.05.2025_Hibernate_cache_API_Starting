@@ -1,0 +1,320 @@
+                            #################
+                             Hibernate Cache 
+                            #################
+
+Hibernate Cache is a mechanism in Hibernate ORM to reduce database access by storing frequently used data in memory.
+Note: Hibernate Cache = In-Memory (Temporary) Storage in RAM
+
+It helps improve performance by:
+a. Avoiding repetitive SQL queries
+b. Reducing latency
+c. Minimizing DB load
+
+Types of Hibernate Caching
+1. First-Level Cache (Enabled by default)
+Scope: Per Hibernate Session. In a typical web application, each user request (such as a login) gets its own Hibernate Session
+Behavior: Same object is never queried twice in a single session
+
+Example:
+
+Session session = sessionFactory.openSession();
+User user1 = session.get(User.class, 1L); // hits DB
+User user2 = session.get(User.class, 1L); // served from cache
+This is always enabled and cannot be disabled.
+
+2. Second-Level Cache (Optional)
+Scope: Across multiple Sessions (shared globally)
+Requires configuration
+Stores entities between sessions
+Uses cache providers like:
+Ehcache
+Caffeine
+Infinispan
+Redis
+
+Example:
+---------------------
+Shared Caching Works Like This:
+-> If User A logs in and loads user profile with ID 1:
+-> First DB hit → stores in second-level cache.
+-> If User B logs in and loads user with ID 1:
+-> No DB hit — served from cache!
+
+We will use redis cache later on in our project ..
+======================================================================================================
+
+                                 ++++++++++++++++++++++++++++
+                                 +       SPRING BOOT        +
+                                 ++++++++++++++++++++++++++++
+
+
+
+Let us come to API part from here now 
+=======================================================================================================
+
+
+##############################
+What is Spring boot
+################################
+
+Spring Boot is an open-source Java-based framework used to create stand-alone applications quickly and easily with minimal configuration.
+
+
+Spring Boot Stand-Alone Application:
+-------------------------------------------
+-> You just run a main() method like any regular Java program.
+-> It includes an embedded server (e.g., Tomcat) in the application itself.
+-> No need to install or configure any external server separately.
+
+
+
+
+-----------------         --------                      --------------------
+.               .         .      .                      .                  .
+.   frontend    . ----->  . API  . ----------------->   .  SPRING BOOT     .
+.               .         .      .                      .                  .
+.               .         --------                      .   HIBERNATE      .
+-----------------                                       --------------------
+
+
+=========
+HTML
+BOOTSTRAP      ----->   ANGULAR
+TYPESCRIPT
+==========
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+##########################
+What is Spring MVC?
+##########################
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+-> Spring MVC stands for Spring Model-View-Controller.
+—> It's a web framework in the Spring used to build web applications using the MVC design pattern.
+
+++++++++++++++++++++++++
+: How Spring MVC Works :
+++++++++++++++++++++++++
+
+a. User sends a request (/home) or from html form.
+b. DispatcherServlet (front controller) catches the request.
+c. Finds the matching controller method using annotations like @GetMapping.
+d. Executes logic and prepares data (Model).
+c. Returns a view.
+
+
+==================================================================================
+
+by default jsp package is not available in STS, so we need to add the package in it. 
+
+    go to STS framework ----> help ----> eclipse marketplace ------> 
+
+    search ---->   (Eclipse Enterprise Java and Web Developer Tools 3.39 )
+
+
+install and restart the STS, then now create  a new spring stater project with the name of (ems)
+
+Add dependecies------->
+
+MySQL Driver
+Spring Data JPA
+Spring Web
+======================================================================================================
+
+
+
+######################################
+Example - Create JSP page inside /src/webapp/WEB-INF/views/ and call that from controller layer 
+###################################
+
+Note: Location
+---------------
+
+in project,
+
+ems---> src/main ---> create one folder (webapp/WEB-INF/views)         ::: Note :::  ----> not under the src/main/java
+
+
+registration.jsp
+=================
+
+Step 1:
+----------
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Register</title>
+</head>
+<body>
+	<h2>Register here......</h2>
+</body>
+</html>
+=======================================================================================================
+
+now anything inside WEB-INF , only a controller can call that so we need to build a controller layer 
+
+======================================================================================================
+
+so here our SPRING MVC comes into picture , let us create the controller layer 
+
+go to 
+
+/src/main/java  ---> create a package
+
+    --> com.ems.controller
+    
+    
+    under this build a class named EmployeeController.java
+
+
+    path is 
+
+    src/main/java
+    com.ems.controller
+    
+      EmployeeController.java
+================================================
+
+package com.ems.controller;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+@Controller
+public class EmployeeController {
+
+/*how can a servlet can call a jsp page ---> request dispatcher , 
+ * but here there is no request dispatcher
+	
+	here simple "return" works like request dispatcher
+	
+	*/
+  
+	//http://localhost:8080/views
+	
+	@RequestMapping("/view")
+	public String ViewRegisterEmp() {
+		
+		return "registration";
+		
+	      }	
+	
+}
+
+================================================================
+application.properties
+======================
+
+
+spring.application.name=ems
+spring.mvc.view.suffix=.jsp
+spring.mvc.view.prefix=/WEB-INF/views/
+spring.datasource.url=jdbc:mysql://localhost:3306/emsdb
+spring.datasource.username=root
+spring.datasource.password=test
+
+
+
+
+=========================================================================
+step: 3  
+-------
+
+we need to add below dependenice  in pom.xml file
+-------------------------------------------------
+<dependency>
+		    <groupId>org.apache.tomcat.embed</groupId>
+		    <artifactId>tomcat-embed-jasper</artifactId>
+</dependency>
+-------------------------------------------------
+pom.xml
++++++++
+
+
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>org.springframework.boot</groupId>
+		<artifactId>spring-boot-starter-parent</artifactId>
+		<version>3.5.6</version>
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
+	<groupId>com.ems</groupId>
+	<artifactId>ems</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+	<name>ems</name>
+	<description>student details</description>
+	<url/>
+	<licenses>
+		<license/>
+	</licenses>
+	<developers>
+		<developer/>
+	</developers>
+	<scm>
+		<connection/>
+		<developerConnection/>
+		<tag/>
+		<url/>
+	</scm>
+	<properties>
+		<java.version>17</java.version>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-jpa</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>com.mysql</groupId>
+			<artifactId>mysql-connector-j</artifactId>
+			<scope>runtime</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+		    <groupId>org.apache.tomcat.embed</groupId>
+		    <artifactId>tomcat-embed-jasper</artifactId>
+</dependency>
+
+</dependencies>
+  
+  <build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
